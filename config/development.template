@@ -1,0 +1,24 @@
+{
+    "server": {
+        "useSSL": true,
+        "portHttp": 8894,
+        "portWebsocket": 8895,
+        "portAdmin": 8896,
+        "portManage": 8897,
+        "key": "/opt/cert/privkey.pem",
+        "cert": "/opt/cert/cert.pem",
+        "ca": "/opt/cert/fullchain.pem",
+        "apiSecret": "JanusRocks!"
+    },
+    "janus": [],
+    "plugins": ["janus.plugin.videoroom"],
+    "balancing": {
+        "cpuRequestInterval": 3000
+    },
+    "redis": {
+        "host": "localhost",
+        "port": 6379,
+        "database": 1,
+        "prefix": "loadBalancer"
+    }
+}

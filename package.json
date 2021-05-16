@@ -1,12 +1,12 @@
 {
     "name": "janus-load-balancer",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Load balancer for Janus media server",
     "main": "server.js",
     "scripts": {
-        "start": "tsc && node ./dest/server.js",
-        "run": "node ./dest/server.js",
-        "install": "cp ./balancer.service /etc/systemd/system/balancer.service && service balancer start"
+        "build": "tsc",
+        "start": "tsc && node ./dist/server.js",
+        "deploy": "cp ./balancer.service /etc/systemd/system/balancer.service && service balancer start"
     },
     "repository": {
         "type": "git",
