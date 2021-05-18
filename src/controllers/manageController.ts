@@ -39,8 +39,9 @@ export class ManageController {
                             res.json({ success: true });
                         }
                     });
-                }
-                res.json({ success: true });
+                } else {
+            	    res.json({ success: true });
+		}
             });
         });
     }
