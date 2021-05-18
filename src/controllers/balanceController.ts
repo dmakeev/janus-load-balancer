@@ -174,7 +174,6 @@ export class BalanceController {
                 protocol = janusInstance.useSSL ? 'https' : 'http';
                 self.connections[janusId].responderUrl = `${protocol}://${janusInstance.host}:${janusInstance.portResponder}`;
                 self.connections[janusId].toResponder = io(self.connections[janusId].responderUrl);
-                // console.log(self.connections[janusId].toResponder);
                 self.connections[janusId].toResponder.on('connect', () => {
                     self.connections[janusId].responderConnected = true;
                     self.updateJanusStatus(janusId);
@@ -187,10 +186,7 @@ export class BalanceController {
                                         LogController.error(error.reason);
                                         return;
                                     }
-                                    console.log('O', result);
-                                    console.log('A', self.pool.instances[janusId]);
                                     self.pool.instances[janusId].cpu = Number(result.loadAverage);
-                                    console.log('B', self.pool.instances[janusId]);
                                     self.pool.saveUnlock(lock, () => {});
                                 });
                             });
@@ -277,7 +273,6 @@ export class BalanceController {
             self.pool.addRoom(roomId);
             let lessCPU: number = 100;
             let bestInstanceId: number | null = null;
-            // console.log(self.pool.instances);
             Object.values(self.pool.instances).forEach((item) => {
                 if (item.status === 'online' && item.cpu !== null && item.cpu > lessCPU) {
                     bestInstanceId = item.id;
@@ -323,7 +318,6 @@ export class BalanceController {
         const self = this;
         self.pool.load((error: JanusError | null) => {
             let janusInstanceId: number = null;
-            // console.log('self.pool.rooms + ', self.pool.rooms);
             //TODO: add cache here
             Object.values(self.pool.rooms).every((room) => {
                 if (room.sessions[publicSessionId]) {
@@ -333,12 +327,8 @@ export class BalanceController {
                 return true;
             });
             if (!janusInstanceId) {
-                console.log('XXXXXXXXXXXXXX', self.pool.rooms);
-                console.log(publicSessionId);
+                return callback({ code: 500, reason: 'No Janus instance found for this session' } as JanusError);
             }
-            // console.log('self.pool.rooms - ', janusInstanceId);
-            // TODO: add error handling
-
             return callback(null, janusInstanceId);
         });
     }

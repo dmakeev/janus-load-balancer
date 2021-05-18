@@ -77,6 +77,8 @@ export class JanusInstanceController {
             JanusInstanceController.janusRequest(janusInstance, url, input, (error: JanusError | null, response) => {
                 if (error) {
                     console.log(`Janus request failed, Janus ID ${janusInstance.id}`, input);
+                    console.log(url);
+                    console.log(janusInstance);
                     return callback(error);
                 }
                 return callback(null, response.data);
@@ -100,7 +102,6 @@ export class JanusInstanceController {
                 const url = `${janusInstance.urlHttp}/${privateSessionId}?rid=${Date.now()}&maxev=10&apisecret=${encodeURIComponent(
                     janusInstance.apiSecret
                 )}`;
-                // console.log('GGGGGGGGGGGGGGGGGG', url);
                 axios
                     .get(url)
                     .then((response: AxiosResponse) => {
@@ -133,7 +134,6 @@ export class JanusInstanceController {
                         });
                     });
                     if (!pluginInSession) {
-                        // console.log('============================', event);
                         Object.values(sessionList).forEach((sessionObject) => console.log(sessionObject));
                         return false;
                     }
@@ -150,25 +150,11 @@ export class JanusInstanceController {
                     });
                     event.session_id = pluginInSession.publicSessionId;
                 }
-                /*
-                if (event.plugindata && event.plugindata.data && event.plugindata.data.id) {
-                    // event.plugindata.data.id = pluginInSession.publicPluginId;
-                    console.log('===================================================================', event.plugindata.data.publishers);
-                    Object.values(sessionList).find((sessionObject: Session) => {
-                        console.log(sessionObject);
-                    });
-                }
-                */
-                // console.log('++++++++++++++++++++++++++++++', event);
-                if (event.plugindata && event.plugindata.data && event.plugindata.data) {
-                    // console.log('===================================================================', event.plugindata.data);
-                }
                 return true;
             });
             if (!events.length) {
                 return;
             }
-            // console.log('++++++++++++++++++++++++++++++', events);
             if (JanusInstanceController.eventListeners[publicSessionId]) {
                 JanusInstanceController.eventListeners[publicSessionId](null, events);
                 delete JanusInstanceController.eventListeners[publicSessionId];
@@ -179,13 +165,6 @@ export class JanusInstanceController {
                 events.forEach((event) => {
                     JanusInstanceController.eventMessages[publicSessionId].push(event);
                 });
-                /*
-                if (!JanusInstanceController.eventMessages[publicSessionId].length) {
-                    JanusInstanceController.eventMessages[publicSessionId] = events;
-                } else {
-                    JanusInstanceController.eventMessages[publicSessionId].concat(events);
-                }
-                */
             }
         });
     }

@@ -32,7 +32,6 @@ export class Session extends Unimodel {
         self.id = self.createId();
         self.save((error: JanusError) => {
             self.saveInList((error: JanusError) => {
-                console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', self.id);
                 callback(error);
             });
         });
@@ -55,6 +54,7 @@ export class Session extends Unimodel {
             } as JanusPluginInSession;
             self.saveInList((error: JanusError) => {
                 if (error) {
+                    lock.unlock();
                     return callback(error);
                 }
                 self.saveUnlock(lock, (error: JanusError | null) => {
@@ -68,6 +68,7 @@ export class Session extends Unimodel {
         const self = this;
         self.loadLock((error: JanusError | null, sessionObject: Session, lock: Lock) => {
             if (!self.plugins[publicPluginId]) {
+                lock.unlock();
                 return callback({ code: 500, reason: `Plugin ${publicPluginId} not found` } as JanusError);
             }
             self.plugins[publicPluginId].privateSessionId = privateSessionId;
@@ -75,6 +76,7 @@ export class Session extends Unimodel {
             self.plugins[publicPluginId].data = data;
             self.saveInList((error: JanusError) => {
                 if (error) {
+                    lock.unlock();
                     return callback(error);
                 }
                 self.saveUnlock(lock, () => {

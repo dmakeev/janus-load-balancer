@@ -19,20 +19,22 @@ export class PluginVideoroomController {
                 const pluginInSession = Object.values(sessionObject.plugins).find(
                     (plugin) => plugin.publicPluginId === Number(publicPluginId)
                 );
-                JanusInstanceController.send(
-                    janusInstanceId,
-                    pluginInSession.publicSessionId,
-                    pluginInSession.privateSessionId,
-                    pluginInSession.privatePluginId,
-                    input,
-                    (error: JanusError | null, response: any) => {
-                        if (error) {
-                            return callback(error);
+                if (pluginInSession && pluginInSession.privateSessionId && pluginInSession.privatePluginId) {
+                    JanusInstanceController.send(
+                        janusInstanceId,
+                        pluginInSession.publicSessionId,
+                        pluginInSession.privateSessionId,
+                        pluginInSession.privatePluginId,
+                        input,
+                        (error: JanusError | null, response: any) => {
+                            if (error) {
+                                return callback(error);
+                            }
+                            return callback();
                         }
-                        return callback();
-                    }
-                );
-                return;
+                    );
+                    return;
+                }
             }
             balanceController.getJanusPerRoom(input.body.room, sessionObject.id, (error: JanusError | null, janusInstanceId?: number) => {
                 if (error) {
@@ -62,9 +64,9 @@ export class PluginVideoroomController {
                                     }
                                     JanusInstanceController.send(
                                         janusInstanceId,
-                                        pluginInSession.publicSessionId,
-                                        pluginInSession.privateSessionId,
-                                        pluginInSession.privatePluginId,
+                                        sessionObject.id,
+                                        privateSessionId,
+                                        privatePluginId,
                                         input,
                                         (error: JanusError | null) => {
                                             if (error) {
