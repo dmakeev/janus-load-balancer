@@ -166,5 +166,10 @@ export class JanusRestController {
                 });
             });
         });
+        
+        // Health check
+        self.app.get('/', (req: any, res: any) => {
+            res.send('Ok');
+        });
     }
 }
