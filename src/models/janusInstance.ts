@@ -25,7 +25,6 @@ export interface JanusInstanceDefinition {
 export type JanusStatus = 'online' | 'offline' | 'disabled';
 
 export class JanusInstance extends Unimodel implements JanusInstanceDefinition {
-    public id: number;
     protected _type: string = 'janus';
     public useSSL: boolean;
     public host: string;
