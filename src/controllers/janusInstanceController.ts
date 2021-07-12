@@ -126,7 +126,7 @@ export class JanusInstanceController {
                 let pluginInSession: JanusPluginInSession = null;
                 if (event.sender) {
                     Object.values(sessionList).find((sessionObject: Session) => {
-                        return Object.values(sessionObject.plugins).find((plugin) => {
+                        return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
                             if (plugin.privatePluginId === event.sender) {
                                 pluginInSession = plugin;
                                 return true;
@@ -141,7 +141,7 @@ export class JanusInstanceController {
                     event.sender = pluginInSession.publicPluginId;
                 } else {
                     Object.values(sessionList).find((sessionObject: Session) => {
-                        return Object.values(sessionObject.plugins).find((plugin) => {
+                        return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
                             if (plugin.privateSessionId === event.session_id) {
                                 pluginInSession = plugin;
                                 return true;

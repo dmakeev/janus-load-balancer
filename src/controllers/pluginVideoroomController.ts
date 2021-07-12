@@ -16,8 +16,8 @@ export class PluginVideoroomController {
 
         balanceController.getJanusByPublicData(sessionObject.id, publicPluginId, (error: JanusError | null, janusInstanceId?: number) => {
             if (janusInstanceId) {
-                const pluginInSession = Object.values(sessionObject.plugins).find(
-                    (plugin) => plugin.publicPluginId === Number(publicPluginId)
+                const pluginInSession: JanusPluginInSession = Object.values(sessionObject.plugins).find(
+                    (plugin: JanusPluginInSession) => plugin.publicPluginId === Number(publicPluginId)
                 );
                 if (pluginInSession && pluginInSession.privateSessionId && pluginInSession.privatePluginId) {
                     JanusInstanceController.send(
