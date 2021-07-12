@@ -179,6 +179,9 @@ export class BalanceController {
                     self.updateJanusStatus(janusId);
                     self.connections[janusId].cpuInterval = setInterval(
                         () => {
+                            if (!self.connections[janusId].toResponder || !self.connections[janusId].toResponder.connected) {
+                                return;
+                            }
                             self.connections[janusId].toResponder.emit('/v1/load/cpu', {}, (result) => {
                                 // self.connections[janusId].cpu result.loadAverage;
                                 self.pool.loadLock((error: JanusError | null, fake, lock: Lock) => {
