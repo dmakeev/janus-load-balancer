@@ -75,13 +75,23 @@ export class JanusInstanceController {
                 JanusInstanceController.sendEventRequest(janusInstanceId, publicSessionId, privateSessionId);
             }
             JanusInstanceController.janusRequest(janusInstance, url, input, (error: JanusError | null, response) => {
+                // console.log('____________________________________');
+                // console.log(error);
+                // console.log(response);
+                if (response && response.plugindata && response.plugindata.data && response.plugindata.data.participants) {
+                    console.log('____________________________________');
+                    console.log(response.plugindata.data.participants);
+                }
                 if (error) {
                     console.log(`Janus request failed, Janus ID ${janusInstance.id}`, input);
                     console.log(url);
                     console.log(janusInstance);
                     return callback(error);
                 }
-                return callback(null, response.data);
+                new Session().loadList((error: JanusError | null, sessionList: { [key: string]: Session }) => {
+                    response = JanusInstanceController.normalizeSession(response, sessionList);
+                    return callback(null, response);
+                });
             });
         });
     }
@@ -123,33 +133,7 @@ export class JanusInstanceController {
                 if (event.janus === 'keepalive') {
                     return false;
                 }
-                let pluginInSession: JanusPluginInSession = null;
-                if (event.sender) {
-                    Object.values(sessionList).find((sessionObject: Session) => {
-                        return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
-                            if (plugin.privatePluginId === event.sender) {
-                                pluginInSession = plugin;
-                                return true;
-                            }
-                        });
-                    });
-                    if (!pluginInSession) {
-                        Object.values(sessionList).forEach((sessionObject) => console.log(sessionObject));
-                        return false;
-                    }
-                    event.session_id = pluginInSession.publicSessionId;
-                    event.sender = pluginInSession.publicPluginId;
-                } else {
-                    Object.values(sessionList).find((sessionObject: Session) => {
-                        return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
-                            if (plugin.privateSessionId === event.session_id) {
-                                pluginInSession = plugin;
-                                return true;
-                            }
-                        });
-                    });
-                    event.session_id = pluginInSession.publicSessionId;
-                }
+                event = JanusInstanceController.normalizeSession(event, sessionList);
                 return true;
             });
             if (!events.length) {
@@ -169,9 +153,40 @@ export class JanusInstanceController {
         });
     }
 
+    private static normalizeSession(event: any, sessionList: { [key: string]: Session }): any {
+        let pluginInSession: JanusPluginInSession = null;
+        if (event.sender) {
+            Object.values(sessionList).find((sessionObject: Session) => {
+                return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
+                    if (plugin.privatePluginId === event.sender) {
+                        pluginInSession = plugin;
+                        return true;
+                    }
+                });
+            });
+            if (!pluginInSession) {
+                Object.values(sessionList).forEach((sessionObject) => console.log(sessionObject));
+                return false;
+            }
+            event.session_id = pluginInSession.publicSessionId;
+            event.sender = pluginInSession.publicPluginId;
+        } else {
+            Object.values(sessionList).find((sessionObject: Session) => {
+                return Object.values(sessionObject.plugins).find((plugin: JanusPluginInSession) => {
+                    if (plugin.privateSessionId === event.session_id) {
+                        pluginInSession = plugin;
+                        return true;
+                    }
+                });
+            });
+            event.session_id = pluginInSession.publicSessionId;
+        }
+        return event;
+    }
+
     public static subscribeToEvents(sessionObject: Session, input: any, callback): void {
         JanusInstanceController.eventListeners[sessionObject.id] = callback;
-        if (JanusInstanceController.eventMessages[sessionObject.id]) {
+        if (JanusInstanceController.eventMessages[sessionObject.id] && JanusInstanceController.eventMessages[sessionObject.id].length) {
             callback(null, JanusInstanceController.eventMessages[sessionObject.id]);
             JanusInstanceController.eventMessages[sessionObject.id] = [];
         }

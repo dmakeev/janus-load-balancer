@@ -17,7 +17,7 @@ export class Unimodel {
      * Generate new ID
      *
      */
-    createId() {
+    public createId() {
         return 1000000000000000 + Math.round(Math.random() * (Number.MAX_SAFE_INTEGER - 1000000000000000));
     }
 
@@ -109,14 +109,18 @@ export class Unimodel {
         const self = this;
         if (!self.id) {
             const reason = `Can't save ${self._type} without id`;
-            return callback({ code: 400, reason } as JanusError);
+            lock.unlock(() => {
+                return callback({ code: 400, reason } as JanusError);
+            });
         }
         const key = `${config.redis.prefix}:${self._type}:${self.id}`;
         const toStore = JSON.stringify({ ...self });
         const redisClient: RedisClient = RedisController.getClient();
         redisClient.set(key, toStore, (error: Error) => {
             if (error) {
-                return callback({ code: 500, reason: error.message } as JanusError);
+                lock.unlock(() => {
+                    return callback({ code: 500, reason: error.message } as JanusError);
+                });
             }
             lock.unlock(() => {
                 callback(null, self);

@@ -23,15 +23,9 @@ export class ResponseController {
         return result;
     }
 
-    /*
-    public static event(data: any, sessionId: number, transaction: string) {
-        return {
-            janus: 'ack',
-            session_id: sessionId,
-            transaction,
-        };
+    public static data(transaction: string, data: any) {
+        return { ...data, transaction };
     }
-    */
 
     public static error(transaction: string, error: JanusError, input?: any) {
         return {

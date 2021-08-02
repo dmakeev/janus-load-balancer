@@ -35,7 +35,7 @@ export class RedisController {
         RedisController.client = createClient({ host: config.redis.host, port: config.redis.port });
         RedisController.client.select(config.redis.database);
 
-        self.client.flushall();
+        self.client.flushdb();
 
         // Error handling
         RedisController.client.on('error', (error) => {
@@ -55,7 +55,7 @@ export class RedisController {
 
             // the max number of times Redlock will attempt
             // to lock a resource before erroring
-            retryCount: 10,
+            retryCount: 30, // 10
 
             // the time in ms between attempts
             retryDelay: 200, // time in ms

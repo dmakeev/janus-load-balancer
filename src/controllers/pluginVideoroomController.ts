@@ -13,7 +13,6 @@ export class PluginVideoroomController {
 
     public static processMessage(sessionObject: Session, publicPluginId: number, input: any, callback) {
         const balanceController = BalanceController.getInstance();
-
         balanceController.getJanusByPublicData(sessionObject.id, publicPluginId, (error: JanusError | null, janusInstanceId?: number) => {
             if (janusInstanceId) {
                 const pluginInSession: JanusPluginInSession = Object.values(sessionObject.plugins).find(
@@ -30,7 +29,7 @@ export class PluginVideoroomController {
                             if (error) {
                                 return callback(error);
                             }
-                            return callback();
+                            return callback(null, response);
                         }
                     );
                     return;
@@ -38,6 +37,8 @@ export class PluginVideoroomController {
             }
             balanceController.getJanusPerRoom(input.body.room, sessionObject.id, (error: JanusError | null, janusInstanceId?: number) => {
                 if (error) {
+                    console.log('!!!!!! 2', error);
+                    console.log('!!!!!! 21', janusInstanceId);
                     return callback(error);
                 }
                 JanusInstanceController.startSession(janusInstanceId, (error: JanusError | null, privateSessionId?: number) => {
@@ -68,11 +69,11 @@ export class PluginVideoroomController {
                                         privateSessionId,
                                         privatePluginId,
                                         input,
-                                        (error: JanusError | null) => {
+                                        (error: JanusError | null, data: any) => {
                                             if (error) {
                                                 return callback(error);
                                             }
-                                            callback(error, { id: pluginInSession.publicPluginId });
+                                            callback(error, data);
                                         }
                                     );
                                 }

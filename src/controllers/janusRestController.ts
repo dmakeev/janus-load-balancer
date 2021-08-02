@@ -95,7 +95,7 @@ export class JanusRestController {
                         if (error) {
                             response = ResponseController.error(req.body.transaction, error);
                         } else {
-                            response = ResponseController.ack(req.body.transaction, req.params.session);
+                            response = ResponseController.data(req.body.transaction, data);
                         }
                         return res.json(response);
                     }
@@ -134,6 +134,7 @@ export class JanusRestController {
 
         // GET
         self.app.get('/janus/:session', (req: any, res: any) => {
+            console.log('SSSSSSSSSSSSSSSS', req.params.session);
             new Session().load(req.params.session, (error: JanusError | null, sessionObject: Session) => {
                 if (error) {
                     const response = ResponseController.error(req.body.transaction, error);
@@ -150,19 +151,23 @@ export class JanusRestController {
                     return;
                 }
                 const timeout = setTimeout(() => {
+                    // console.log('SSSSSSSSSSSSSSSS XXX 1', req.params.session);
                     JanusInstanceController.unsubscribeToEvents(sessionObject);
                     return res.json([
                         {
                             janus: 'keepalive',
                         },
                     ]);
-                }, 30000);
+                }, 90000);
                 JanusInstanceController.subscribeToEvents(sessionObject, req.query, (error: JanusError | null, events: any[]) => {
-                    if (events && events.length) {
-                        clearTimeout(timeout);
-                        JanusInstanceController.unsubscribeToEvents(sessionObject);
-                        return res.json(events);
-                    }
+                    // console.log('SSSSSSSSSSSSSSSS XXX 2', req.params.session);
+                    // console.log('SSSSSSSSSSSSSSSS XXX 3', events);
+                    // if (events && events.length) {
+                    //    console.log('SSSSSSSSSSSSSSSS XXX 4', events);
+                    clearTimeout(timeout);
+                    JanusInstanceController.unsubscribeToEvents(sessionObject);
+                    return res.json(events);
+                    //}
                 });
             });
         });

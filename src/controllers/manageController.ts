@@ -24,6 +24,8 @@ export class ManageController {
             balanceController.getInstances((error: JanusError | null, instances: JanusInPool[]) => {
                 const existing: JanusInPool | null = Object.values(instances).find((item) => item.host === req.body.host);
                 if (!existing) {
+                    console.log('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', instances);
+                    console.log('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', req.body);
                     balanceController.addInstance(req.body as JanusInstanceDefinition, (error: JanusError | null) => {
                         if (error) {
                             res.json({ success: false, ...error });
@@ -40,8 +42,8 @@ export class ManageController {
                         }
                     });
                 } else {
-            	    res.json({ success: true });
-		}
+                    res.json({ success: true });
+                }
             });
         });
     }

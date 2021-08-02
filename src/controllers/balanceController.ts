@@ -6,10 +6,11 @@
  */
 
 import * as config from 'getconfig';
-import { Pool, JanusInstance, JanusInstanceDefinition, JanusError, JanusStatus } from '../models';
+import { Pool, JanusInstance, JanusInstanceDefinition, JanusError, JanusStatus, JanusInPool } from '../models';
 import { Lock, LogController } from '../controllers';
 import * as WebSocket from 'websocket';
 import io from 'socket.io-client';
+import { RoomInPool } from '../models/pool';
 
 interface JanusServiceConnection {
     janusId: number;
@@ -169,7 +170,7 @@ export class BalanceController {
             self.connections[janusId].toJanus.connect(self.connections[janusId].janusUrl, 'janus-protocol');
 
             // Responder connection - getting the VM metrics
-            if (!self.connections[janusId].toResponder) {
+            if (!self.connections[janusId].toResponder && !self.connections[janusId].responderConnected) {
                 let warnOnError = true;
                 protocol = janusInstance.useSSL ? 'https' : 'http';
                 self.connections[janusId].responderUrl = `${protocol}://${janusInstance.host}:${janusInstance.portResponder}`;
@@ -187,7 +188,7 @@ export class BalanceController {
                                 self.pool.loadLock((error: JanusError | null, fake, lock: Lock) => {
                                     if (error) {
                                         LogController.error(error.reason);
-                                        return;
+                                        return lock.unlock(() => {});
                                     }
                                     self.pool.instances[janusId].cpu = Number(result.loadAverage);
                                     self.pool.saveUnlock(lock, () => {});
@@ -232,7 +233,7 @@ export class BalanceController {
         const self = this;
         self.pool.loadLock((error: JanusError | null, fake, lock: Lock) => {
             if (!self.pool.instances[janusId]) {
-                return;
+                return lock.unlock(() => {});
             }
             let status: JanusStatus;
             if (!self.connections[janusId].enabled) {
@@ -244,7 +245,7 @@ export class BalanceController {
                 status = 'offline';
             }
             if (self.pool.instances[janusId].status === status) {
-                return;
+                return lock.unlock(() => {});
             }
             LogController.message(`Janus status at ${self.connections[janusId].janusUrl} is changed to: ${status}`);
             self.pool.instances[janusId].status = status;
@@ -264,19 +265,20 @@ export class BalanceController {
         const self = this;
         self.pool.loadLock((error: JanusError | null, fake, lock: Lock) => {
             if (error) {
-                return callback(error);
+                return lock.unlock(() => {
+                    callback(error);
+                });
             }
             if (self.pool.rooms[roomId]) {
                 self.pool.rooms[roomId].sessions[sessionId] = sessionId;
-                self.pool.saveUnlock(lock, () => {
+                return self.pool.saveUnlock(lock, () => {
                     return callback(null, self.pool.rooms[roomId].janusInstanceId);
                 });
-                return;
             }
             self.pool.addRoom(roomId);
-            let lessCPU: number = 100;
+            let lessCPU: number = 999999;
             let bestInstanceId: number | null = null;
-            Object.values(self.pool.instances).forEach((item) => {
+            Object.values(self.pool.instances).forEach((item: JanusInPool) => {
                 if (item.status === 'online' && item.cpu !== null && item.cpu > lessCPU) {
                     bestInstanceId = item.id;
                     lessCPU = item.cpu;
@@ -284,11 +286,14 @@ export class BalanceController {
             });
             if (!bestInstanceId) {
                 const instancesWithoutCpuValue = Object.values(self.pool.instances).filter(
-                    (item) => item.status === 'online' && item.cpu === null
+                    (item: JanusInPool) => item.status === 'online' && item.cpu === null
                 );
-                const bestInstance = instancesWithoutCpuValue[Math.floor(Math.random() * instancesWithoutCpuValue.length)];
+                const bestInstance: JanusInPool | null =
+                    instancesWithoutCpuValue[Math.floor(Math.random() * instancesWithoutCpuValue.length)];
                 if (!bestInstance) {
-                    return callback('There is no instances to use');
+                    return lock.unlock(() => {
+                        callback('There is no instances to use');
+                    });
                 }
                 bestInstanceId = bestInstance.id;
             }
@@ -305,7 +310,7 @@ export class BalanceController {
         self.pool.load((error: JanusError | null) => {
             let janusInstanceId: number = null;
             //TODO: add cache here
-            Object.values(self.pool.rooms).every((room) => {
+            Object.values(self.pool.rooms).every((room: RoomInPool) => {
                 if (room.sessions[publicSessionId]) {
                     janusInstanceId = room.janusInstanceId;
                     return false;
@@ -322,7 +327,7 @@ export class BalanceController {
         self.pool.load((error: JanusError | null) => {
             let janusInstanceId: number = null;
             //TODO: add cache here
-            Object.values(self.pool.rooms).every((room) => {
+            Object.values(self.pool.rooms).every((room: RoomInPool) => {
                 if (room.sessions[publicSessionId]) {
                     janusInstanceId = room.janusInstanceId;
                     return false;
