@@ -8,7 +8,6 @@
 import { Unimodel, JanusError, JanusPlugins } from './';
 
 export class Room extends Unimodel {
-    public id: number;
     protected _type: string = 'room';
     started: number;
     plugin: JanusPlugins;

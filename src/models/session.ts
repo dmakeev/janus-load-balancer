@@ -21,7 +21,6 @@ export interface JanusPluginInSession {
 }
 
 export class Session extends Unimodel {
-    id: number;
     _type: string = 'session';
     plugins: { [key: number]: JanusPluginInSession } = {};
     cacheCreate: any;
