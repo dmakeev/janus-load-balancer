@@ -83,7 +83,7 @@ export class JanusInstanceController {
                     console.log(response.plugindata.data.participants);
                 }
                 if (error) {
-                    console.log(`Janus request failed, Janus ID ${janusInstance.id}`, input);
+                    console.log(`Janus request failed, Janus ID ${janusInstance.id}`, {error, input});
                     console.log(url);
                     console.log(janusInstance);
                     return callback(error);
